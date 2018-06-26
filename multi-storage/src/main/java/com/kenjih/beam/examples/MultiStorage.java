@@ -1,5 +1,7 @@
 package com.kenjih.beam.examples;
 
+import com.kenjih.beam.examples.converter.UserPubSubConverter;
+import com.kenjih.beam.examples.utils.PubSubUtils;
 import java.util.List;
 import java.util.Arrays;
 
@@ -7,6 +9,7 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.CreateDisposition;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO.Write.WriteDisposition;
+import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.transforms.ParDo;
@@ -41,6 +44,9 @@ public class MultiStorage {
             .withSchema(UserBigQueryConverter.SCHEMA)
             .withCreateDisposition(CreateDisposition.CREATE_IF_NEEDED)
             .withWriteDisposition(WriteDisposition.WRITE_APPEND));
+
+    input.apply("CovertToPubSubPayLoad", ParDo.of(new UserPubSubConverter()))
+        .apply("WriteToPubSub", PubsubIO.writeStrings().to(PubSubUtils.getTopicPath(options)));
 
     p.run().waitUntilFinish();
 

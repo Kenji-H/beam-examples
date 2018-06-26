@@ -15,4 +15,9 @@ public interface MultiStorageOptions extends GcpOptions {
   String getBigQueryTable();
   void setBigQueryTable(String table);
 
+  @Description("PubSub topic name")
+  @Required
+  String getPubSubTopic();
+  void setPubSubTopic(String table);
+
 }
