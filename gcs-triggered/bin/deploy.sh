@@ -17,5 +17,4 @@ mvn compile exec:java \
   --runner=${RUNNER} \
   --project=${GOOGLE_PROJECT} \
   --topic=projects/${GOOGLE_PROJECT}/topics/${TOPIC_NAME} \
-  " \
-  -Dexec.cleanupDaemonThreads=false
+  "

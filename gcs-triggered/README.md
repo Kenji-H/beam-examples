@@ -1,13 +1,12 @@
 ## Event-Driven 
 
 1. Upload a file to Cloud Storage bucket
-2. Object Notification send to Cloud Pub Sub topic
+2. Object Notification is sent to Cloud Pub Sub topic
 3. Cloud Dataflow
     - Read Cloud Pub Sub topic with PubSubIO
     - Parse object notification json to get file path
     - Read Cloud Storage file with TextIO
-    - Count words
-    - Write new file to Cloud Storage with TextIO
+    - Showing file content as log
 
 ## Create Notification for Cloud Storage
 
