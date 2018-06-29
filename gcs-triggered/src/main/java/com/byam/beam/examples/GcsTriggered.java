@@ -32,7 +32,7 @@ public class GcsTriggered
 
         Pipeline p = Pipeline.create(options);
         p
-                .apply("Read PubSub Topic", PubsubIO.readStrings().fromTopic(options.getTopic().toString()))
+                .apply("Read PubSub Topic", PubsubIO.readStrings().fromTopic(options.getTopic()))
 
                 .apply("Parse FilePath", ParDo.of(new DoFn<String, String>() {
                     @ProcessElement
