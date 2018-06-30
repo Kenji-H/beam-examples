@@ -37,41 +37,40 @@ public class App
                 .as(Options.class);
 
         Pipeline p = Pipeline.create(options);
+        final String sideInputFilePath = options.getSideInputFilePath().get();
 
-        PCollection<String> mainStream =  p.apply("Main Stream PubSubIO",
-                PubsubIO.readStrings().fromTopic(options.getTopic()));
+        PCollection<String> mainStream =  p.apply("MainInput Read: Pubsub",
+                PubsubIO.readStrings().fromTopic(options.getTopic().get()));
 
-        PCollection<Long> countingSource = p.apply(String.format("Emitting Element Every %s Seconds", options.getInterval()),
-                GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getInterval())));
+        PCollection<Long> countingSource = p.apply(String.format("Updating every %s seconds", options.getIntervalSeconds().get()),
+                GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getIntervalSeconds().get())));
 
         final PCollectionView<String> sideInputGcs = countingSource
-                .apply("Place counting source into Global Window", Window
+                .apply("Assign to Global Window", Window
                         .<Long>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime.pastFirstElementInPane()))
                         .discardingFiredPanes())
 
-                .apply("Set Side Input File Path", ParDo.of(new DoFn<Long, String>() {
+                .apply("Get GCS FilePath", ParDo.of(new DoFn<Long, String>() {
                     @ProcessElement
                     public void processElement(ProcessContext c){
                         LOG.info("Updating Side Input from GCS. Emitted element: " + c.element());
-                        c.output(options.getSideInputFilePath());
+                        c.output(sideInputFilePath);
                     }
                 }))
 
-                .apply("Reading GCS File", TextIO.readAll())
+                .apply("SideInput Read: GCS", TextIO.readAll())
 
-                .apply("To View ???", View.<String>asSingleton());
+                .apply("ViewAsSingleton", View.<String>asSingleton());
 
-        mainStream.apply(ParDo.of(new DoFn<String, String>() {
+        mainStream.apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
 
             @ProcessElement
             public void processElement(ProcessContext c){
 
                 String e = c.element();
 
-                LOG.info("main input element: " + e);
-
-                LOG.info("side input element: " + c.sideInput(sideInputGcs));
+                LOG.info("[Merged mainInput and sideInput]: " + e + " " + c.sideInput(sideInputGcs));
 
                 c.output(e);
             }
