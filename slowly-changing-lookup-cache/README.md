@@ -9,7 +9,7 @@ An implementation of "Pattern: Slowly-changing lookup cache" pattern of [Guide t
 * `sideInput` can be any external resources. For the convenience, reading a text file from Cloud Storage.
 * `sideInput` is a slow changing data. We are updating this every `N` seconds. 
 
-![console](console.png "console")
+<img src="console.png" width="600">
 
 ## How to Run
 
@@ -57,7 +57,7 @@ sleep 60
 gcloud --project ${GOOGLE_PROJECT} pubsub topics publish ${PUBSUB_TOPIC_NAME} --message 'Hello'
 ```
 
-Check the pipeline terminal (log), use should see same logs as following.
+Check the pipeline terminal (log), should see same logs as following.
 ```bash
 Hello world             # mainInput + sideInput
 
