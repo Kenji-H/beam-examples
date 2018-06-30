@@ -6,7 +6,7 @@ An implementation of "Pattern: Slowly-changing lookup cache" pattern of [Guide t
 * Reading a streaming data from Cloud PubSub as `mainInput` for pipeline. 
 * Enriching `mainInput` data with `sideInput`.
     - In this example, both inputs are `string`, we merging these two and showing as an log.
-* `sideInput` can be any external resources, in this case we are reading a text file from Cloud Storage.
+* `sideInput` can be any external resources. For the convenience, reading a text file from Cloud Storage.
 * `sideInput` is a slow changing data. We are updating this every `N` seconds. 
 
 ![console](console.png "console")
@@ -19,7 +19,7 @@ An implementation of "Pattern: Slowly-changing lookup cache" pattern of [Guide t
     - `${GOOGLE_PROJECT}`: Google Project name.
     - `${PUBSUB_TOPIC_NAME}`: Cloud Pubsub Topic name.
     
-1. Prepare a text file, upload to Cloud Storage. `${BUCKET}` is name of the storage bucket.
+1. Prepare a text file, upload to Cloud Storage.
 ```bash
 echo "world" > data_side_input.txt
 
@@ -45,6 +45,7 @@ mvn compile exec:java \
 
 Open the new terminal, send dummy messages to Cloud Pubsub. 
 ```bash
+# send a first dummy message
 gcloud --project ${GOOGLE_PROJECT} pubsub publish ${PUBSUB_TOPIC_NAME} --message 'Hello'
 
 # update the slow changing data
