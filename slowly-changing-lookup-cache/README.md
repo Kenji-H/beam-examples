@@ -66,3 +66,5 @@ Hello Apache Beam       # mainInput + sideInput (updated after 60 seconds)
 
 ## Reference
 * [Guide to common Cloud Dataflow use-case patterns](https://cloud.google.com/blog/big-data/2017/06/guide-to-common-cloud-dataflow-use-case-patterns-part-1)
+* [Cloud Dataflow Side Inputs](https://cloud.google.com/dataflow/model/par-do#side-inputs-and-windowing)
+* [Apache Beam Side Inputs](https://beam.apache.org/documentation/programming-guide/#side-inputs)
