@@ -68,3 +68,7 @@ Hello Apache Beam       # mainInput + sideInput (updated after 60 seconds)
 * [Guide to common Cloud Dataflow use-case patterns](https://cloud.google.com/blog/big-data/2017/06/guide-to-common-cloud-dataflow-use-case-patterns-part-1)
 * [Cloud Dataflow Side Inputs](https://cloud.google.com/dataflow/model/par-do#side-inputs-and-windowing)
 * [Apache Beam Side Inputs](https://beam.apache.org/documentation/programming-guide/#side-inputs)
+
+
+We can't read BigQuery table from ParDo using Beam reader.
+https://stackoverflow.com/questions/48650127/use-a-pcollection-as-input-of-another-pcollection/48653161#48653161

@@ -5,17 +5,15 @@ set -o pipefail
 set -o nounset
 set -o xtrace
 
-BUCKET=$1
-RUNNER=$2
-GOOGLE_PROJECT=$3
-PUBSUB_TOPIC_NAME=$4
+RUNNER=$1
+GOOGLE_PROJECT=$2
+PUBSUB_TOPIC_NAME=$3
+BIGQUERY_PROJECT=$4
+BIGQUERY_DATASET=$5
+BIGQUERY_TABLE=$6
 
 # set project
 gcloud config set project ${GOOGLE_PROJECT}
-
-# Prepare a text file, upload to Cloud Storage.
-echo "world" > data_side_input.txt
-gsutil cp data_side_input.txt gs://${BUCKET}/
 
 # Run the Beam Pipeline
 mvn compile exec:java \
@@ -25,5 +23,7 @@ mvn compile exec:java \
   --project=${GOOGLE_PROJECT} \
   --topic=projects/${GOOGLE_PROJECT}/topics/${PUBSUB_TOPIC_NAME} \
   --intervalSeconds=60 \
-  --sideInputFilePath=gs://${BUCKET}/data_side_input.txt \
+  --bigQueryProject=${BIGQUERY_PROJECT} \
+  --bigQueryDataset=${BIGQUERY_DATASET} \
+  --bigQueryTable=${BIGQUERY_TABLE} \
   "

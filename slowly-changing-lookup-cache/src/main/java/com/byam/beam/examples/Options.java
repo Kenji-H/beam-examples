@@ -17,8 +17,18 @@ public interface Options extends PipelineOptions {
     ValueProvider<Integer> getIntervalSeconds();
     void setIntervalSeconds(ValueProvider<Integer> value);
 
-    @Description("Cloud Storage File Path.")
+    @Description("Google BigQuery Project ID.")
     @Required
-    ValueProvider<String> getSideInputFilePath();
-    void setSideInputFilePath(ValueProvider<String> value);
+    ValueProvider<String> getBigQueryProject();
+    void setBigQueryProject(ValueProvider<String> value);
+
+    @Description("Google BigQuery Dataset ID.")
+    @Required
+    ValueProvider<String> getBigQueryDataset();
+    void setBigQueryDataset(ValueProvider<String> value);
+
+    @Description("Google BigQuery Table ID.")
+    @Required
+    ValueProvider<String> getBigQueryTable();
+    void setBigQueryTable(ValueProvider<String> value);
 }

@@ -2,7 +2,6 @@ package com.byam.beam.examples;
 
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.GenerateSequence;
-import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -18,14 +17,16 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  * Slowly-changing lookup cache
  * Main input: PubSubIO
- * Side input: TextIO (Google Cloud Storage File)
+ * Side input: BigQuery Table (using BigQuery Java Client)
  */
-public class App
+public class Main
 {
-    private static final Logger LOG = LoggerFactory.getLogger(App.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     public static void main( String[] args )
     {
@@ -37,7 +38,9 @@ public class App
                 .as(Options.class);
 
         Pipeline p = Pipeline.create(options);
-        final String sideInputFilePath = options.getSideInputFilePath().get();
+
+        String query = String.format("SELECT category_id, description FROM `%s.%s.%s`;",
+                options.getBigQueryProject(), options.getBigQueryDataset().get(), options.getBigQueryTable().get());
 
         PCollection<String> mainStream =  p.apply("MainInput Read: Pubsub",
                 PubsubIO.readStrings().fromTopic(options.getTopic().get()));
@@ -45,37 +48,33 @@ public class App
         PCollection<Long> countingSource = p.apply(String.format("Updating every %s seconds", options.getIntervalSeconds().get()),
                 GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getIntervalSeconds().get())));
 
-        final PCollectionView<String> sideInputGcs = countingSource
+        // SideInput of pipeline, which is update in every N seconds. Reading a table from BigQuery.
+        final PCollectionView<Map<String, String>> sideInput = countingSource
                 .apply("Assign to Global Window", Window
                         .<Long>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime.pastFirstElementInPane()))
                         .discardingFiredPanes())
 
-                .apply("Get GCS FilePath", ParDo.of(new DoFn<Long, String>() {
-                    @ProcessElement
-                    public void processElement(ProcessContext c){
-                        LOG.info("Updating Side Input from GCS. Emitted element: " + c.element());
-                        c.output(sideInputFilePath);
-                    }
-                }))
+                .apply(new ReadSlowChangingTable("Read BigQuery Table", query, "category_id", "description"))
 
-                .apply("SideInput Read: GCS", TextIO.readAll())
+                .apply("View As Map", View.<String, String>asMap());
 
-                .apply("ViewAsSingleton", View.<String>asSingleton());
-
+        // MainInput of pipeline. Reading streaming data from PubSub. Enriching data with sideInput
         mainStream.apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
 
-            @ProcessElement
+            @DoFn.ProcessElement
             public void processElement(ProcessContext c){
 
-                String e = c.element();
+                String categoryId = c.element();
 
-                LOG.info("[Merged mainInput and sideInput]: " + e + " " + c.sideInput(sideInputGcs));
+                Map<String, String> enrichingData = c.sideInput(sideInput);
 
-                c.output(e);
+                LOG.info("[Stream] category id: " + categoryId + " [Enriching Data] description: " + enrichingData.get(categoryId));
+
+                c.output(enrichingData.get(categoryId));
             }
 
-        }).withSideInputs(sideInputGcs));
+        }).withSideInputs(sideInput));
 
         p.run();
     }
