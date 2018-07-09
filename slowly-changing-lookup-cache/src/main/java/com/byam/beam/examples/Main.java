@@ -39,27 +39,34 @@ public class Main
 
         Pipeline p = Pipeline.create(options);
 
+        // Query for external Slow Changing Database: BigQuery Table.
         String query = String.format("SELECT category_id, description FROM `%s.%s.%s`;",
                 options.getBigQueryProject(), options.getBigQueryDataset().get(), options.getBigQueryTable().get());
 
+        // Main Input: Reading streaming data from PubSub Topic
         PCollection<String> mainStream =  p.apply("MainInput Read: Pubsub",
                 PubsubIO.readStrings().fromTopic(options.getTopic().get()));
 
-        PCollection<Long> countingSource = p.apply(String.format("Updating every %s seconds", options.getIntervalSeconds().get()),
-                GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getIntervalSeconds().get())));
+        // Side Input: Reading batch data from BigQuery Table every N seconds.
+        final PCollectionView<Map<String, String>> sideInput = p
 
-        // SideInput of pipeline, which is update in every N seconds. Reading a table from BigQuery.
-        final PCollectionView<Map<String, String>> sideInput = countingSource
+                // This is trick for emitting a single long element in every N seconds.
+                .apply(String.format("Updating every %s seconds", options.getIntervalSeconds().get()),
+                        GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getIntervalSeconds().get())))
+
+                // Applying it to Global Window
                 .apply("Assign to Global Window", Window
                         .<Long>into(new GlobalWindows())
                         .triggering(Repeatedly.forever(AfterProcessingTime.pastFirstElementInPane()))
                         .discardingFiredPanes())
 
+                // Emitted long data trigger this batch read BigQuery client job.
                 .apply(new ReadSlowChangingTable("Read BigQuery Table", query, "category_id", "description"))
 
+                // Caching results as Map.
                 .apply("View As Map", View.<String, String>asMap());
 
-        // MainInput of pipeline. Reading streaming data from PubSub. Enriching data with sideInput
+        // Enriching mainInput with sideInput.
         mainStream.apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
 
             @DoFn.ProcessElement
@@ -71,7 +78,9 @@ public class Main
 
                 LOG.info("[Stream] category id: " + categoryId + " [Enriching Data] description: " + enrichingData.get(categoryId));
 
-                c.output(enrichingData.get(categoryId));
+                String output = categoryId + ", " + enrichingData.get(categoryId);
+
+                c.output(output);
             }
 
         }).withSideInputs(sideInput));
