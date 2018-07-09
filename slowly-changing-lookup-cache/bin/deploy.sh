@@ -17,7 +17,7 @@ gcloud config set project ${GOOGLE_PROJECT}
 
 # Run the Beam Pipeline
 mvn compile exec:java \
-  -Dexec.mainClass=com.byam.beam.examples.App\
+  -Dexec.mainClass=com.byam.beam.examples.Main\
   -Dexec.args="\
   --runner=${RUNNER} \
   --project=${GOOGLE_PROJECT} \
