@@ -75,46 +75,4 @@ public class ReadSlowChangingTable extends PTransform<PCollection<Long>, PCollec
         }
         ));
     }
-
-    public static void main (String[] args) throws InterruptedException {
-
-        String query = "SELECT category_id, description FROM `cet-dev.bya_work.store`;";
-
-        BigQuery bigquery = BigQueryOptions.getDefaultInstance().getService();
-
-        QueryJobConfiguration queryConfig =
-                QueryJobConfiguration.newBuilder(
-                        query)
-                        .setUseLegacySql(false)
-                        .build();
-
-        // Create a job ID so that we can safely retry.
-        JobId jobId = JobId.of(UUID.randomUUID().toString());
-        Job queryJob = bigquery.create(JobInfo.newBuilder(queryConfig).setJobId(jobId).build());
-
-        // Wait for the query to complete.
-        queryJob = queryJob.waitFor();
-
-        // Check for errors
-        if (queryJob == null) {
-            throw new RuntimeException("Job no longer exists");
-        } else if (queryJob.getStatus().getError() != null) {
-            // You can also look at queryJob.getStatus().getExecutionErrors() for all
-            // errors, not just the latest one.
-            throw new RuntimeException(queryJob.getStatus().getError().toString());
-        }
-
-        // Get the results.
-        QueryResponse response = bigquery.getQueryResults(jobId);
-        TableResult result = queryJob.getQueryResults();
-
-        // Print all pages of the results.
-        for (FieldValueList row : result.iterateAll()) {
-
-            String keyInstance = row.get("category_id").getStringValue();
-            String valueInstance = row.get("description").getStringValue();
-
-            LOG.info("key: " + keyInstance + ", value: " + valueInstance);
-        }
-    }
 }

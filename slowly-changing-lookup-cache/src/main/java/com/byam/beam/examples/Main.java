@@ -69,13 +69,14 @@ public class Main
         // Enriching mainInput with sideInput.
         mainStream.apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
 
-            @DoFn.ProcessElement
+            @ProcessElement
             public void processElement(ProcessContext c){
 
                 String categoryId = c.element();
 
                 Map<String, String> enrichingData = c.sideInput(sideInput);
 
+                LOG.info("[Map size]: " + enrichingData.size());
                 LOG.info("[Stream] category id: " + categoryId + " [Enriching Data] description: " + enrichingData.get(categoryId));
 
                 String output = categoryId + ", " + enrichingData.get(categoryId);
