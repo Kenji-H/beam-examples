@@ -7,10 +7,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.View;
-import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
-import org.apache.beam.sdk.transforms.windowing.GlobalWindows;
-import org.apache.beam.sdk.transforms.windowing.Repeatedly;
-import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PCollectionView;
 import org.joda.time.Duration;
@@ -55,10 +52,9 @@ public class Main
                         GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getIntervalSeconds().get())))
 
                 // Applying it to Global Window
-                .apply("Assign to Global Window", Window
-                        .<Long>into(new GlobalWindows())
-                        .triggering(Repeatedly.forever(AfterProcessingTime.pastFirstElementInPane()))
-                        .discardingFiredPanes())
+                .apply("Assign to Fixed Window", Window
+                        .<Long>into(FixedWindows.of(Duration.standardSeconds(options.getIntervalSeconds().get())))
+                )
 
                 // Emitted long data trigger this batch read BigQuery client job.
                 .apply(new ReadSlowChangingTable("Read BigQuery Table", query, "category_id", "description"))
@@ -67,24 +63,27 @@ public class Main
                 .apply("View As Map", View.<String, String>asMap());
 
         // Enriching mainInput with sideInput.
-        mainStream.apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
+        mainStream
+                .apply("Assign to Fixed Window", Window.<String>into(FixedWindows.of(Duration.standardSeconds(options.getIntervalSeconds().get()))))
 
-            @ProcessElement
-            public void processElement(ProcessContext c){
+                .apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
 
-                String categoryId = c.element();
+                    @ProcessElement
+                    public void processElement(ProcessContext c){
 
-                Map<String, String> enrichingData = c.sideInput(sideInput);
+                        String categoryId = c.element();
 
-                LOG.info("[Map size]: " + enrichingData.size());
-                LOG.info("[Stream] category id: " + categoryId + " [Enriching Data] description: " + enrichingData.get(categoryId));
+                        Map<String, String> enrichingData = c.sideInput(sideInput);
 
-                String output = categoryId + ", " + enrichingData.get(categoryId);
+                        LOG.info("[Map size]: " + enrichingData.size());
+                        LOG.info("[Stream] category id: " + categoryId + " [Enriching Data] description: " + enrichingData.get(categoryId));
 
-                c.output(output);
-            }
+                        String output = categoryId + ", " + enrichingData.get(categoryId);
 
-        }).withSideInputs(sideInput));
+                        c.output(output);
+                    }
+
+                }).withSideInputs(sideInput));
 
         p.run();
     }
