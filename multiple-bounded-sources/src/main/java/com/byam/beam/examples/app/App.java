@@ -24,6 +24,8 @@ public class App
     public static void main( String[] args )
     {
 
+        System.out.println("Creating Pipeline");
+
         Pipeline p = Pipeline.create();
 
         // examples data
@@ -48,26 +50,6 @@ public class App
         final TupleTag<String> emailsTag = new TupleTag<>();
         final TupleTag<String> phonesTag = new TupleTag<>();
 
-        final List<KV<String, CoGbkResult>> expectedResults =
-                Arrays.asList(
-                        KV.of(
-                                "amy",
-                                CoGbkResult.of(emailsTag, Arrays.asList("amy@example.com"))
-                                        .and(phonesTag, Arrays.asList("111-222-3333", "333-444-5555"))),
-                        KV.of(
-                                "carl",
-                                CoGbkResult.of(emailsTag, Arrays.asList("carl@email.com", "carl@example.com"))
-                                        .and(phonesTag, Arrays.asList("444-555-6666"))),
-                        KV.of(
-                                "james",
-                                CoGbkResult.of(emailsTag, Arrays.asList())
-                                        .and(phonesTag, Arrays.asList("222-333-4444"))),
-                        KV.of(
-                                "julia",
-                                CoGbkResult.of(emailsTag, Arrays.asList("julia@example.com"))
-                                        .and(phonesTag, Arrays.asList())));
-
-
         PCollection<KV<String, CoGbkResult>> results =
                 KeyedPCollectionTuple.of(emailsTag, emails)
                         .and(phonesTag, phones)
@@ -80,17 +62,20 @@ public class App
                                     @ProcessElement
                                     public void processElement(ProcessContext c) {
                                         KV<String, CoGbkResult> e = c.element();
+
                                         String name = e.getKey();
                                         Iterable<String> emailsIter = e.getValue().getAll(emailsTag);
                                         Iterable<String> phonesIter = e.getValue().getAll(phonesTag);
-//                                        String formattedResult =
-//                                                Snippets.formatCoGbkResults(name, emailsIter, phonesIter);
+
                                         String formattedResult =
                                                 String.format("%s, %s, %s", name, emailsIter, phonesIter);
+
                                         c.output(formattedResult);
                                     }
                                 }));
 
-        contactLines.apply(TextIO.write().to("contactLines"));
+        contactLines.apply(TextIO.write().to("contactLines").withNumShards(1));
+
+        p.run();
     }
 }
