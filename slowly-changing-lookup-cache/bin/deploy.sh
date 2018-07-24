@@ -8,9 +8,10 @@ set -o xtrace
 RUNNER=$1
 GOOGLE_PROJECT=$2
 PUBSUB_TOPIC_NAME=$3
-BIGQUERY_PROJECT=$4
-BIGQUERY_DATASET=$5
-BIGQUERY_TABLE=$6
+BQ_PROJECT_ID=$4
+BQ_DATASET_ID=$5
+BQ_TABLE_ID=$6
+INTERVAL_SECONDS=$7
 
 # set project
 gcloud config set project ${GOOGLE_PROJECT}
@@ -22,8 +23,8 @@ mvn compile exec:java \
   --runner=${RUNNER} \
   --project=${GOOGLE_PROJECT} \
   --topic=projects/${GOOGLE_PROJECT}/topics/${PUBSUB_TOPIC_NAME} \
-  --intervalSeconds=60 \
-  --bigQueryProject=${BIGQUERY_PROJECT} \
-  --bigQueryDataset=${BIGQUERY_DATASET} \
-  --bigQueryTable=${BIGQUERY_TABLE} \
+  --intervalSeconds=${INTERVAL_SECONDS} \
+  --bigQueryProject=${BQ_PROJECT_ID} \
+  --bigQueryDataset=${BQ_DATASET_ID} \
+  --bigQueryTable=${BQ_TABLE_ID} \
   "
