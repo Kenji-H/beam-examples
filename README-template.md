@@ -21,7 +21,7 @@ Please set environment variables as follows:
 - `PUBSUB_TOPIC`: Pub/Sub topic name.
 - `OUTPUT_FILE`: Output file path.
 
-Create a Pub/Sub topic.
+Create a Pub/Sub topic if you not have yet.
 
 ```bash
 gcloud pubsub topics create --project ${GOOGLE_PROJECT} ${PUBSUB_TOPIC}
