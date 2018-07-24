@@ -9,6 +9,8 @@ This project aims to collect know-hows and best practices about Apache Beam.
 | ---- | ---- |
 |  [word-count-beam](word-count-beam)  |  This is most likely your first Apache Beam project.   It includes fundamental features and best practices of Beam.  |
 |  [multi-storage](multi-storage)  |  This shows how to push data to multiple storage locations.  |
+|  [gcs-triggered](gcs-triggered)  |  This shows how to start processing data in an event-driven way with GCS notification.  |
+
 
 ## How to contribute
 You can add an example project by sending PRs.  
