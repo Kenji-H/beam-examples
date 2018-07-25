@@ -64,7 +64,7 @@ public class Main
 
         // Enriching mainInput with sideInput.
         mainStream
-                .apply("Assign to Fixed Window", Window.<String>into(FixedWindows.of(Duration.standardSeconds(options.getIntervalSeconds().get()))))
+                .apply("Assign to Fixed Window", Window.<String>into(FixedWindows.of(Duration.standardSeconds(1))))
 
                 .apply("Enriching MainInput with SideInput", ParDo.of(new DoFn<String, String>() {
 
