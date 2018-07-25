@@ -6,8 +6,8 @@ An implementation of "Pattern: Slowly-changing lookup cache" pattern of [Guide t
 * Reading a streaming data from Cloud PubSub as `mainInput` for pipeline. 
 * Enriching `mainInput` data with `sideInput`.
     - In this example, both inputs are `string`, we merging these two and showing as an log.
-* `sideInput` can be any external resources. For the convenience, reading records of BigQuery table us java client.
-* `sideInput` is a slow changing data. We are updating this every `N` seconds. 
+* `sideInput` can be any external resources. For the convenience, reading records from BigQuery table with java client.
+* `sideInput` is a slowly-changing data. We are updating this every `N` seconds. 
 
 <img src="console.png" width="600">
 

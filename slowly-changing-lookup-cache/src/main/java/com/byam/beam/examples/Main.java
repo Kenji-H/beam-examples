@@ -51,7 +51,7 @@ public class Main
                 .apply(String.format("Updating every %s seconds", options.getIntervalSeconds().get()),
                         GenerateSequence.from(0).withRate(1, Duration.standardSeconds(options.getIntervalSeconds().get())))
 
-                // Applying it to Global Window
+                // Applying it to Fixed Window
                 .apply("Assign to Fixed Window", Window
                         .<Long>into(FixedWindows.of(Duration.standardSeconds(options.getIntervalSeconds().get())))
                 )
