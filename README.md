@@ -11,7 +11,7 @@ This project aims to collect know-hows and best practices about Apache Beam.
 |  [multi-storage](multi-storage)  |  This shows how to push data to multiple storage locations.  |
 |  [gcs-triggered](gcs-triggered)  |  This shows how to start processing data in an event-driven way with GCS notification.  |
 |  [slowly-changing-lookup-cache](slowly-changing-lookup-cache)  |  Implementation of [Beam SideInput](https://beam.apache.org/documentation/programming-guide/#side-inputs) which updates periodically   |
-|  [dead-letter](dead-letter)  |  Implementation of [Dealing with bad data] (https://cloud.google.com/blog/big-data/2017/06/guide-to-common-cloud-dataflow-use-case-patterns-part-1) pattern which deals invalid data with dead-letter. |
+|  [dead-letter](dead-letter)  |  Implementation of [Dealing with bad data](https://cloud.google.com/blog/big-data/2017/06/guide-to-common-cloud-dataflow-use-case-patterns-part-1) pattern which deals invalid data with dead-letter. |
 
 
 ## How to contribute
