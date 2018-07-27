@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.kenjih</groupId>
-  <artifactId>dealing-with-bad-data</artifactId>
+  <artifactId>dead-letter</artifactId>
   <version>0.1</version>
 
   <packaging>jar</packaging>
